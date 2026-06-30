@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PR Planner</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f0ff;color:#333;font-size:15px}
+.app{max-width:480px;margin:0 auto;padding:0 0 80px;min-height:100vh}
+.topbar{background:#49326b;color:#fff;padding:12px 16px 0;position:sticky;top:0;z-index:10}
+.topbar-titel{font-size:17px;font-weight:600;padding-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.topbar-datum{font-size:11px;opacity:.75}
+.ws-knoppen{display:flex;gap:6px;padding-bottom:10px}
+.ws-btn{flex:1;padding:7px 4px;font-size:12px;font-weight:600;border:none;border-radius:8px 8px 0 0;cursor:pointer;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);transition:.15s}
+.ws-btn.actief{background:#fff;color:#49326b;font-weight:700}
+.ws-badge{display:inline-block;background:rgba(255,255,255,.25);border-radius:20px;padding:0 6px;font-size:10px;margin-left:4px}
+.ws-btn.actief .ws-badge{background:#ede7f6;color:#49326b}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #e8e0f0;position:sticky;top:88px;z-index:9;box-shadow:0 2px 8px rgba(73,50,107,.06)}
+.tab{flex:1;padding:10px 4px;font-size:11px;font-weight:600;text-align:center;cursor:pointer;color:#888;border-bottom:2px solid transparent;transition:.15s}
+.tab.actief{color:#49326b;border-bottom-color:#49326b}
+.tab i{display:block;font-size:18px;margin-bottom:2px}
+.sectie{display:none;padding:14px 16px}
+.sectie.actief{display:block}
+.ws-label{background:#ede7f6;color:#49326b;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;margin-bottom:12px;display:inline-block}
+.dag-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dag-label{font-size:13px;font-weight:600;color:#666}
+.add-btn{background:#49326b;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600}
+.add-btn:hover{background:#3a2558}
+.kaart{background:#fff;border:1px solid #ede7f6;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 1px 4px rgba(73,50,107,.06)}
+.kaart.klaar{opacity:.45}
+.check{width:20px;height:20px;border-radius:5px;border:2px solid #c9b8e8;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;transition:.15s;margin-top:1px}
+.check.gedaan{background:#49326b;border-color:#49326b}
+.check i{font-size:13px;color:#fff;display:none}
+.check.gedaan i{display:block}
+.kaart-body{flex:1;min-width:0}
+.kaart-titel{font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;color:#222}
+.kaart-sub{font-size:12px;color:#999;margin-top:3px;line-height:1.5}
+.kaart-acties{display:flex;gap:6px;margin-top:7px;align-items:center;flex-wrap:wrap}
+.badge{font-size:11px;padding:2px 9px;border-radius:20px;font-weight:600}
+.badge-taak{background:#e8f0fe;color:#1a56c4}
+.badge-actie{background:#fce4ec;color:#b71c5a}
+.badge-afspraak{background:#e8f5e9;color:#2e7d32}
+.badge-notitie{background:#fff8e1;color:#f57f17}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0;margin-left:auto;flex-shrink:0;transition:.15s}
+.del-btn:hover{color:#e53935}
+.done-btn{background:none;border:1px solid #ddd;border-radius:6px;cursor:pointer;color:#999;font-size:11px;padding:3px 8px;font-weight:600;transition:.15s}
+.done-btn:hover{color:#49326b;border-color:#49326b}
+.form-modal{background:#fff;border:1px solid #ede7f6;border-radius:12px;padding:16px;margin-bottom:16px;display:none;box-shadow:0 2px 12px rgba(73,50,107,.1)}
+.form-modal.open{display:block}
+.form-row{margin-bottom:12px}
+.form-row label{font-size:12px;color:#666;display:block;margin-bottom:5px;font-weight:600}
+.form-row input,.form-row textarea,.form-row select{width:100%;font-size:14px;padding:9px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#333;outline:none;font-family:inherit}
+.form-row input:focus,.form-row textarea:focus,.form-row select:focus{border-color:#49326b}
+.form-row textarea{height:75px;resize:none}
+.form-knoppen{display:flex;gap:8px}
+.opslaan-btn{background:#49326b;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;flex:1;font-weight:600}
+.opslaan-btn:hover{background:#3a2558}
+.annuleer-btn{background:#f5f0ff;border:1px solid #ddd;border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer;color:#666;font-weight:600}
+.leeg{text-align:center;padding:36px 16px;color:#bbb;font-size:13px}
+.leeg i{font-size:36px;display:block;margin-bottom:10px;color:#ddd}
+.dag-blok{margin-bottom:20px}
+.dag-naam{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #f0ebff}
+.project-blok{margin-bottom:16px}
+.project-naam{font-size:13px;font-weight:700;color:#49326b;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.teller{background:#ede7f6;color:#49326b;border-radius:20px;padding:1px 9px;font-size:11px;font-weight:600}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.stat{background:#fff;border:1px solid #ede7f6;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(73,50,107,.06)}
+.stat-nr{font-size:26px;font-weight:700;color:#49326b}
+.stat-label{font-size:11px;color:#aaa;margin-top:3px;font-weight:600}
+.prio-hoog{color:#e53935;font-weight:700}
+.prio-middel{color:#fb8c00;font-weight:700}
+.prio-laag{color:#43a047;font-weight:700}
+@media(max-width:480px){.app{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-titel">
+      <span><i class="ti ti-layout-dashboard"></i> PR Planner</span>
+      <span class="topbar-datum" id="datum-label"></span>
+    </div>
+    <div class="ws-knoppen">
+      <button class="ws-btn actief" onclick="setWS('assecret',this)">AS Secret<span class="ws-badge" id="badge-assecret"></span></button>
+      <button class="ws-btn" onclick="setWS('werk',this)">Werk<span class="ws-badge" id="badge-werk"></span></button>
+      <button class="ws-btn" onclick="setWS('prive',this)">Privé<span class="ws-badge" id="badge-prive"></span></button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab actief" onclick="toonTab('overzicht',this)"><i class="ti ti-home"></i>Overzicht</div>
+    <div class="tab" onclick="toonTab('taken',this)"><i class="ti ti-check"></i>Taken</div>
+    <div class="tab" onclick="toonTab('acties',this)"><i class="ti ti-bolt"></i>Acties</div>
+    <div class="tab" onclick="toonTab('afspraken',this)"><i class="ti ti-calendar"></i>Afspraken</div>
+    <div class="tab" onclick="toonTab('notities',this)"><i class="ti ti-notes"></i>Notities</div>
+    <div class="tab" onclick="toonTab('archief',this)"><i class="ti ti-archive"></i>Archief</div>
+  </div>
+
+  <!-- OVERZICHT -->
+  <div class="sectie actief" id="tab-overzicht">
+    <div class="ws-label" id="ws-label-ov"></div>
+    <div class="stats-grid" id="stats-blok"></div>
+    <div class="dag-label" style="margin-bottom:10px">Open items</div>
+    <div id="overzicht-lijst"></div>
+  </div>
+
+  <!-- TAKEN -->
+  <div class="sectie" id="tab-taken">
+    <div class="ws-label" id="ws-label-taken"></div>
+    <div class="dag-header">
+      <span class="dag-label">Taken per dag</span>
+      <button class="add-btn" onclick="toggleForm('taken-form')"><i class="ti ti-plus"></i> Nieuw</button>
+    </div>
+    <div class="form-modal" id="taken-form">
+      <div class="form-row"><label>Omschrijving</label><input id="t-titel" placeholder="Wat moet er gedaan worden?" /></div>
+      <div class="form-row"><label>Dag</label>
+        <select id="t-dag">
+          <option value="maandag">Maandag</option><option value="dinsdag">Dinsdag</option>
+          <option value="woensdag">Woensdag</option><option value="donderdag">Donderdag</option>
+          <option value="vrijdag">Vrijdag</option><option value="zaterdag">Zaterdag</option>
+          <option value="zondag">Zondag</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Project (optioneel)</label><input id="t-project" placeholder="bijv. Blog, Brevo" /></div>
+      <div class="form-knoppen">
+        <button class="opslaan-btn" onclick="voegToe('taak')">Opslaan</button>
+        <button class="annuleer-btn" onclick="toggleForm('taken-form')">Annuleer</button>
+      </div>
+    </div>
+    <div id="taken-lijst"></div>
+  </div>
+
+  <!-- ACTIES -->
+  <div class="sectie" id="tab-acties">
+    <div class="ws-label" id="ws-label-acties"></div>
+    <div class="dag-header">
+      <span class="dag-label">Acties</span>
+      <button class="add-btn" onclick="toggleForm('acties-form')"><i class="ti ti-plus"></i> Nieuw</button>
+    </div>
+    <div class="form-modal" id="acties-form">
+      <div class="form-row"><label>Omschrijving</label><input id="a-titel" placeholder="Welke actie moet ondernomen worden?" /></div>
+      <div class="form-row"><label>Prioriteit</label>
+        <select id="a-prio"><option value="hoog">Hoog</option><option value="middel">Middel</option><option value="laag">Laag</option></select>
+      </div>
+      <div class="form-row"><label>Project (optioneel)</label><input id="a-project" placeholder="bijv. WooCommerce, Instagram" /></div>
+      <div class="form-knoppen">
+        <button class="opslaan-btn" onclick="voegToe('actie')">Opslaan</button>
+        <button class="annuleer-btn" onclick="toggleForm('acties-form')">Annuleer</button>
+      </div>
+    </div>
+    <div id="acties-lijst"></div>
+  </div>
+
+  <!-- AFSPRAKEN -->
+  <div class="sectie" id="tab-afspraken">
+    <div class="ws-label" id="ws-label-afspraken"></div>
+    <div class="dag-header">
+      <span class="dag-label">Afspraken</span>
+      <button class="add-btn" onclick="toggleForm('afspraken-form')"><i class="ti ti-plus"></i> Nieuw</button>
+    </div>
+    <div class="form-modal" id="afspraken-form">
+      <div class="form-row"><label>Omschrijving</label><input id="af-titel" placeholder="Met wie / waarover?" /></div>
+      <div class="form-row"><label>Datum en tijd</label><input id="af-datum" type="datetime-local" /></div>
+      <div class="form-row"><label>Notitie</label><textarea id="af-notitie" placeholder="Extra informatie..."></textarea></div>
+      <div class="form-knoppen">
+        <button class="opslaan-btn" onclick="voegToe('afspraak')">Opslaan</button>
+        <button class="annuleer-btn" onclick="toggleForm('afspraken-form')">Annuleer</button>
+      </div>
+    </div>
+    <div id="afspraken-lijst"></div>
+  </div>
+
+  <!-- NOTITIES -->
+  <div class="sectie" id="tab-notities">
+    <div class="ws-label" id="ws-label-notities"></div>
+    <div class="dag-header">
+      <span class="dag-label">Notities</span>
+      <button class="add-btn" onclick="toggleForm('notities-form')"><i class="ti ti-plus"></i> Nieuw</button>
+    </div>
+    <div class="form-modal" id="notities-form">
+      <div class="form-row"><label>Titel</label><input id="n-titel" placeholder="Onderwerp" /></div>
+      <div class="form-row"><label>Notitie</label><textarea id="n-tekst" placeholder="Schrijf hier je notitie..."></textarea></div>
+      <div class="form-row"><label>Project (optioneel)</label><input id="n-project" placeholder="bijv. Blog, SEO" /></div>
+      <div class="form-knoppen">
+        <button class="opslaan-btn" onclick="voegToe('notitie')">Opslaan</button>
+        <button class="annuleer-btn" onclick="toggleForm('notities-form')">Annuleer</button>
+      </div>
+    </div>
+    <div id="notities-lijst"></div>
+  </div>
+
+  <!-- ARCHIEF -->
+  <div class="sectie" id="tab-archief">
+    <div class="ws-label" id="ws-label-archief"></div>
+    <div class="dag-label" style="margin-bottom:12px">Afgerond per project</div>
+    <div id="archief-lijst"></div>
+  </div>
+</div>
+
+<script>
+const DAGEN=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const nu=new Date();
+const dagNaam=DAGEN[nu.getDay()];
+document.getElementById('datum-label').textContent=dagNaam.charAt(0).toUpperCase()+dagNaam.slice(1)+' '+nu.getDate()+'-'+(nu.getMonth()+1)+'-'+nu.getFullYear();
+
+let huidigWS='assecret';
+const wsNamen={assecret:'AS Secret',werk:'Werk',prive:'Privé'};
+const leegData=()=>({taken:[],acties:[],afspraken:[],notities:[]});
+let allData={assecret:leegData(),werk:leegData(),prive:leegData()};
+
+function laadData(){
+  try{
+    const opgeslagen=localStorage.getItem('pr-planner-v2');
+    if(opgeslagen) allData=JSON.parse(opgeslagen);
+  }catch(e){}
+  updateBadges();
+  renderAlles();
+}
+
+function slaOp(){
+  try{localStorage.setItem('pr-planner-v2',JSON.stringify(allData));}catch(e){}
+  updateBadges();
+}
+
+function getData(){return allData[huidigWS];}
+
+function updateBadges(){
+  ['assecret','werk','prive'].forEach(ws=>{
+    const d=allData[ws];
+    const open=['taken','acties','afspraken','notities'].reduce((a,t)=>a+d[t].filter(x=>!x.klaar).length,0);
+    const el=document.getElementById('badge-'+ws);
+    el.textContent=open>0?open:'';
+  });
+}
+
+function setWS(ws,el){
+  huidigWS=ws;
+  document.querySelectorAll('.ws-btn').forEach(b=>b.classList.remove('actief'));
+  el.classList.add('actief');
+  document.querySelectorAll('.form-modal').forEach(f=>f.classList.remove('open'));
+  renderAlles();
+}
+
+function toonTab(naam,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('actief'));
+  document.querySelectorAll('.sectie').forEach(s=>s.classList.remove('actief'));
+  el.classList.add('actief');
+  document.getElementById('tab-'+naam).classList.add('actief');
+}
+
+function toggleForm(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+function setWsLabels(){
+  const naam=wsNamen[huidigWS];
+  document.querySelectorAll('[id^="ws-label-"]').forEach(el=>el.textContent=naam);
+}
+
+function voegToe(type){
+  const d=getData();
+  const item={id:Date.now(),klaar:false,aangemaakt:new Date().toISOString()};
+  if(type==='taak'){
+    const t=document.getElementById('t-titel').value.trim();
+    if(!t)return;
+    item.titel=t;item.dag=document.getElementById('t-dag').value;
+    item.project=document.getElementById('t-project').value.trim();
+    d.taken.push(item);
+    document.getElementById('t-titel').value='';
+    document.getElementById('t-project').value='';
+    toggleForm('taken-form');
+  }else if(type==='actie'){
+    const t=document.getElementById('a-titel').value.trim();
+    if(!t)return;
+    item.titel=t;item.prio=document.getElementById('a-prio').value;
+    item.project=document.getElementById('a-project').value.trim();
+    d.acties.push(item);
+    document.getElementById('a-titel').value='';
+    document.getElementById('a-project').value='';
+    toggleForm('acties-form');
+  }else if(type==='afspraak'){
+    const t=document.getElementById('af-titel').value.trim();
+    if(!t)return;
+    item.titel=t;item.datum=document.getElementById('af-datum').value;
+    item.notitie=document.getElementById('af-notitie').value.trim();
+    d.afspraken.push(item);
+    document.getElementById('af-titel').value='';
+    document.getElementById('af-datum').value='';
+    document.getElementById('af-notitie').value='';
+    toggleForm('afspraken-form');
+  }else if(type==='notitie'){
+    const t=document.getElementById('n-titel').value.trim();
+    if(!t)return;
+    item.titel=t;item.tekst=document.getElementById('n-tekst').value.trim();
+    item.project=document.getElementById('n-project').value.trim();
+    d.notities.push(item);
+    document.getElementById('n-titel').value='';
+    document.getElementById('n-tekst').value='';
+    document.getElementById('n-project').value='';
+    toggleForm('notities-form');
+  }
+  slaOp();renderAlles();
+}
+
+function toggleKlaar(type,id){
+  const arr=getData()[type];
+  const item=arr.find(x=>x.id===id);
+  if(item){item.klaar=!item.klaar;item.afgerond=item.klaar?new Date().toISOString():null;}
+  slaOp();renderAlles();
+}
+
+function verwijder(type,id){
+  getData()[type]=getData()[type].filter(x=>x.id!==id);
+  slaOp();renderAlles();
+}
+
+function maakKaart(type,item,badgeKlasse,badgeLabel){
+  const div=document.createElement('div');
+  div.className='kaart'+(item.klaar?' klaar':'');
+  let sub='';
+  if(item.dag) sub+=item.dag.charAt(0).toUpperCase()+item.dag.slice(1);
+  if(item.prio) sub+='Prioriteit: <span class="prio-'+item.prio+'">'+item.prio+'</span>';
+  if(item.datum) sub+=new Date(item.datum).toLocaleString('nl-NL',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  if(item.project) sub+=(sub?' &middot; ':'')+item.project;
+  if(item.tekst) sub+=item.tekst.length>60?item.tekst.slice(0,60)+'...':item.tekst;
+  div.innerHTML=`
+    <div style="padding-top:2px">
+      <div class="check ${item.klaar?'gedaan':''}" onclick="toggleKlaar('${type}',${item.id})">
+        <i class="ti ti-check"></i>
+      </div>
+    </div>
+    <div class="kaart-body">
+      <div class="kaart-titel" style="${item.klaar?'text-decoration:line-through;color:#aaa':''}">${item.titel}</div>
+      ${sub?`<div class="kaart-sub">${sub}</div>`:''}
+      <div class="kaart-acties">
+        <span class="badge ${badgeKlasse}">${badgeLabel}</span>
+        ${!item.klaar?`<button class="done-btn" onclick="toggleKlaar('${type}',${item.id})">✓ Klaar</button>`:''}
+      </div>
+    </div>
+    <button class="del-btn" onclick="verwijder('${type}',${item.id})" title="Verwijder"><i class="ti ti-trash"></i></button>`;
+  return div;
+}
+
+function renderAlles(){
+  setWsLabels();
+  renderOverzicht();
+  renderTaken();
+  renderLijst('acties-lijst','acties','badge-actie','Actie');
+  renderLijst('afspraken-lijst','afspraken','badge-afspraak','Afspraak');
+  renderLijst('notities-lijst','notities','badge-notitie','Notitie');
+  renderArchief();
+}
+
+function renderOverzicht(){
+  const d=getData();
+  const open={taken:d.taken.filter(x=>!x.klaar).length,acties:d.acties.filter(x=>!x.klaar).length,afspraken:d.afspraken.filter(x=>!x.klaar).length,notities:d.notities.filter(x=>!x.klaar).length};
+  const totaal=Object.values(open).reduce((a,b)=>a+b,0);
+  const klaar=['taken','acties','afspraken','notities'].reduce((a,t)=>a+d[t].filter(x=>x.klaar).length,0);
+  document.getElementById('stats-blok').innerHTML=`
+    <div class="stat"><div class="stat-nr">${totaal}</div><div class="stat-label">Open items</div></div>
+    <div class="stat"><div class="stat-nr">${klaar}</div><div class="stat-label">Afgerond</div></div>
+    <div class="stat"><div class="stat-nr">${open.taken}</div><div class="stat-label">Taken open</div></div>
+    <div class="stat"><div class="stat-nr">${open.acties}</div><div class="stat-label">Acties open</div></div>`;
+  const el=document.getElementById('overzicht-lijst');el.innerHTML='';
+  let gevonden=false;
+  const map={taken:'badge-taak',acties:'badge-actie',afspraken:'badge-afspraak',notities:'badge-notitie'};
+  const lbl={taken:'Taak',acties:'Actie',afspraken:'Afspraak',notities:'Notitie'};
+  ['taken','acties','afspraken','notities'].forEach(type=>{
+    d[type].filter(x=>!x.klaar).slice(0,4).forEach(item=>{el.appendChild(maakKaart(type,item,map[type],lbl[type]));gevonden=true;});
+  });
+  if(!gevonden) el.innerHTML='<div class="leeg"><i class="ti ti-circle-check"></i>Alles afgerond voor '+wsNamen[huidigWS]+'! 🎉</div>';
+}
+
+function renderTaken(){
+  const el=document.getElementById('taken-lijst');el.innerHTML='';
+  const items=getData().taken;
+  if(!items.length){el.innerHTML='<div class="leeg"><i class="ti ti-inbox"></i>Nog geen taken toegevoegd.</div>';return;}
+  DAGEN.slice(1).concat('zondag').forEach(dag=>{
+    const lijst=items.filter(x=>x.dag===dag);
+    if(lijst.length){
+      const blok=document.createElement('div');blok.className='dag-blok';
+      blok.innerHTML=`<div class="dag-naam">${dag.charAt(0).toUpperCase()+dag.slice(1)}</div>`;
+      lijst.forEach(item=>blok.appendChild(maakKaart('taken',item,'badge-taak','Taak')));
+      el.appendChild(blok);
+    }
+  });
+}
+
+function renderLijst(elId,type,badgeKlasse,badgeLabel){
+  const el=document.getElementById(elId);if(!el)return;el.innerHTML='';
+  const items=getData()[type];
+  if(!items.length){el.innerHTML='<div class="leeg"><i class="ti ti-inbox"></i>Nog niets toegevoegd.</div>';return;}
+  items.forEach(item=>el.appendChild(maakKaart(type,item,badgeKlasse,badgeLabel)));
+}
+
+function renderArchief(){
+  const el=document.getElementById('archief-lijst');el.innerHTML='';
+  const d=getData();
+  const alles=[
+    ...d.taken.filter(x=>x.klaar).map(x=>({...x,type:'taak'})),
+    ...d.acties.filter(x=>x.klaar).map(x=>({...x,type:'actie'})),
+    ...d.afspraken.filter(x=>x.klaar).map(x=>({...x,type:'afspraak'})),
+    ...d.notities.filter(x=>x.klaar).map(x=>({...x,type:'notitie'}))
+  ];
+  if(!alles.length){el.innerHTML='<div class="leeg"><i class="ti ti-archive"></i>Nog niets afgerond.</div>';return;}
+  const projecten={};
+  alles.forEach(item=>{const p=item.project||'Overig';if(!projecten[p])projecten[p]=[];projecten[p].push(item);});
+  const map={taak:'badge-taak',actie:'badge-actie',afspraak:'badge-afspraak',notitie:'badge-notitie'};
+  const lbl={taak:'Taak',actie:'Actie',afspraak:'Afspraak',notitie:'Notitie'};
+  const typeMap={taak:'taken',actie:'acties',afspraak:'afspraken',notitie:'notities'};
+  Object.entries(projecten).forEach(([naam,items])=>{
+    const blok=document.createElement('div');blok.className='project-blok';
+    blok.innerHTML=`<div class="project-naam"><i class="ti ti-folder"></i> ${naam} <span class="teller">${items.length}</span></div>`;
+    items.forEach(item=>blok.appendChild(maakKaart(typeMap[item.type],item,map[item.type],lbl[item.type])));
+    el.appendChild(blok);
+  });
+}
+
+laadData();
+</script>
+</body>
+</html>
